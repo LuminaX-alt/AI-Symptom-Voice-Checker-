@@ -1,0 +1,39 @@
+!pip install gtts gradio
+
+import gradio as gr
+from gtts import gTTS
+import tempfile
+import os
+
+# Symptom checker logic
+def diagnose_symptoms(symptom_description):
+    symptom_description = symptom_description.lower()
+    if "fever" in symptom_description and "cough" in symptom_description:
+        diagnosis = "You may be experiencing symptoms of the flu or COVID-19."
+    elif "chest pain" in symptom_description:
+        diagnosis = "Chest pain could indicate a heart condition. Please consult a doctor immediately."
+    elif "headache" in symptom_description:
+        diagnosis = "This might be a migraine or a tension headache. Stay hydrated and rest."
+    else:
+        diagnosis = "Please provide more specific symptoms for a better diagnosis."
+    
+    # Convert text to speech
+    tts = gTTS(text=diagnosis)
+    temp_audio = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+    tts.save(temp_audio.name)
+
+    return diagnosis, temp_audio.name
+
+# Gradio UI
+with gr.Blocks() as symptom_checker:
+    gr.Markdown("## 🤖 AI Symptom Checker with Voice Output")
+
+    symptom_input = gr.Textbox(lines=2, placeholder="Describe your symptoms here...")
+    diagnose_btn = gr.Button("Get Diagnosis")
+
+    output_text = gr.Textbox(label="Diagnosis")
+    output_audio = gr.Audio(label="Voice Response")
+
+    diagnose_btn.click(fn=diagnose_symptoms, inputs=symptom_input, outputs=[output_text, output_audio])
+
+symptom_checker.launch()
